@@ -1,0 +1,17 @@
+replication:
+    replSetName: SECURED
+processManagement:
+    fork: true
+systemLog:
+    destination: file
+    path: /data/db/mongod.log
+security:
+    clusterAuthMode: x509
+    enableEncryption: true
+    encryptionKeyFile: /certs/encryptionKeyFile
+    redactClientLogData: true
+net:
+    ssl:
+        mode: requireSSL
+        PEMKeyFile: /certs/node.pem
+        CAFile: /share/downloads/certs/ca.pem

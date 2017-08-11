@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+#
+# Bash script for provisioning the Vagrant environment for testing MongoDB
+
+set -e
+set -x
+
+function config_hosts(){
+  export CLIENT_IP_ADDR=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}' | tail -1`
+  export CLIENT_FQDN=`hostname`
+  export CLIENT_NAME=`hostname | cut -d. -f 1 | tr '[:upper:]' '[:lower:]'`
+  echo "Configuring /etc/hosts ..."
+  echo "127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4" > /etc/hosts
+  echo "::1       localhost localhost.localdomain localhost6 localhost6.localdomain6" >> /etc/hosts
+  echo "$CLIENT_IP_ADDR    $CLIENT_FQDN $CLIENT_NAME" >> /etc/hosts
+}
+
+function install_mongodb_enterprise(){
+  echo "Install MongoDB Enterprise Repository"
+  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+  echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/3.4 multiverse" |  sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+  echo "Update Repositories"
+  sudo apt-get update -y
+  echo "Install MongoDB Enterprise"
+  sudo apt-get install -y mongodb-enterprise
+}
+
+function setup_data_dir(){
+  sudo sh -c "killall mongod; true"
+  sudo sh -c "sudo su;"
+  mkdir -p /data/db
+  chmod -R 777 /data
+  chown -R vagrant:vagrant /data
+  sudo sh -c "exit;"
+  echo "Set LC_ALL=C to .profile"
+  sudo echo "export LC_ALL=C" >> /home/vagrant/.profile
+}
+
+function install_python_deps(){
+  sudo apt-get install -y python-dev
+  sudo apt-get install -y python-pip
+  sudo pip install pymongo
+  sudo pip install docopt
+  sudo pip install faker
+  sudo pip install numpy
+  sudo pip install mtools
+}
+
+function install_node_deps(){
+  echo "Update Repositories"
+  sudo apt-get update -y
+  sudo apt-get install -y npm
+  npm install -g m
+  yes | m stable
+  npm install -g mongo-hacker
+  ln -sf "/usr/local/lib/node_modules/mongo-hacker/mongo_hacker.js" /home/vagrant/.mongorc.js
+}
+
+function config(){
+  sudo su
+  # disable THP
+  echo -e "never" > /sys/kernel/mm/transparent_hugepage/enabled
+  echo -e "never" > /sys/kernel/mm/transparent_hugepage/defrag
+  # disable mongod upstart service
+  echo 'manual' | sudo tee /etc/init/mongod.override
+  # add custom config for bashrc and vimrc
+  echo "# Set prompt
+PS1='[\u \W]\$ '
+
+# User specific aliases and functions
+alias ...='cd ../..'
+alias ..='cd ..'
+alias a='cd && clear'
+alias c='clear'
+alias grep='grep --color=auto'
+alias h='history'
+alias la='ls -la'
+alias ll='ls -l'
+alias p='python'
+alias pm='ps -A | grep mongo'" >> /home/vagrant/.bashrc
+  echo "set number
+set ruler
+set shiftwidth=4
+set tabstop=4
+syntax on
+filetype indent plugin on" >> /home/vagrant/.vimrc
+}
+
+config_hosts
+install_node_deps
+# install_mongodb_enterprise
+setup_data_dir
+install_python_deps
+config
+echo "DONE"

@@ -1,0 +1,13 @@
+replication:
+    replSetName: myreplset
+processManagement:
+    fork: true
+systemLog:
+    destination: file
+    path: M310-HW-2.2/r0/mongodb.log
+storage:
+    dbPath: M310-HW-2.2/r0
+security:
+    keyFile: mongodb-keyfile
+net:
+    port: 31220
