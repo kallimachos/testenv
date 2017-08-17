@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Bash script for provisioning MongoDB Enterprise environment on Ubuntu
+# Bash script for provisioning MongoDB Enterprise environment on OSX
 
 set -e
 set -x
@@ -16,13 +16,14 @@ function config_hosts(){
 }
 
 function install_mongodb_enterprise(){
-  echo "Install MongoDB Enterprise Repository"
-  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-  echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/3.4 multiverse" |  sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
-  # echo "Update Repositories"
-  sudo apt-get update -y -m
+  echo "Download MongoDB Enterprise"
+  curl -O https://downloads.mongodb.com/osx/mongodb-osx-x86_64-enterprise-3.4.7.tgz
   echo "Install MongoDB Enterprise"
-  sudo apt-get install -y mongodb-enterprise
+  tar -zxvf mongodb-osx-x86_64-enterprise-3.4.7.tgz
+  mkdir -p mongodb
+  mv mongodb-osx-x86_64-enterprise-3.4.7/* mongodb
+  mkdir -p /data/db
+  rm -rf mongodb-osx-x86_64-enterprise-3.4.7.tgz mongodb-osx-x86_64-enterprise-3.4.7
 }
 
 function install_python_deps(){
@@ -42,14 +43,10 @@ function install_node_deps(){
 }
 
 function config(){
-  sudo su
-  # disable THP
-  echo -e "never" > /sys/kernel/mm/transparent_hugepage/enabled
-  echo -e "never" > /sys/kernel/mm/transparent_hugepage/defrag
-  # disable mongod upstart service
-  # echo 'manual' | sudo tee /etc/init/mongod.override
-  # add custom config for bashrc and vimrc
-  echo "# Set prompt
+  echo "# Add mongo to the PATH
+export PATH=/Users/vagrant/mongodb/bin:$PATH
+
+# Set prompt
 PS1='[\u \W]\$ '
 
 # User specific aliases and functions
@@ -62,18 +59,25 @@ alias h='history'
 alias la='ls -la'
 alias ll='ls -l'
 alias p='python'
-alias pm='ps -A | grep mongo'" >> /home/vagrant/.bashrc
+alias pm='ps -A | grep mongo'" >> /Users/vagrant/.bashrc
+  source /Users/vagrant/.bashrc
   echo "set number
 set ruler
 set shiftwidth=4
 set tabstop=4
 syntax on
-filetype indent plugin on" >> /home/vagrant/.vimrc
+filetype indent plugin on" >> /Users/vagrant/.vimrc
+  sudo su
+  # disable mongod upstart service
+  # echo 'manual' | sudo tee /etc/init/mongod.override
+  # add custom config for bashrc and vimrc
+  chmod -R 777 /data
+  chown -R vagrant /data
 }
 
 config_hosts
 install_mongodb_enterprise
-install_node_deps
-install_python_deps
+# install_node_deps
+# install_python_deps
 config
 echo "DONE"
