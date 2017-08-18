@@ -81,8 +81,9 @@ filetype indent plugin on" >> /home/vagrant/.vimrc
 
 config_hosts
 install_mongodb_enterprise
-# installing node_deps currently breaks the VM build
+# installing node_deps breaks the centos6 build (18/08/17)
 # install_node_deps
-install_python_deps
+# installing the python deps breaks the centos6 build (18/08/17)
+# install_python_deps
 config
 echo "DONE"

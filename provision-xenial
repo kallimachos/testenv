@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Bash script for provisioning MongoDB Enterprise environment on Debian
+# Bash script for provisioning MongoDB Enterprise environment on Ubuntu
 
 set -e
 set -x
@@ -18,8 +18,8 @@ function config_hosts(){
 function install_mongodb_enterprise(){
   echo "Install MongoDB Enterprise Repository"
   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-  echo "deb http://repo.mongodb.com/apt/debian jessie/mongodb-enterprise/3.4 main" | sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
-  echo "Update Repositories"
+  echo "deb http://repo.mongodb.com/apt/ubuntu "$(lsb_release -sc)"/mongodb-enterprise/3.4 multiverse" |  sudo tee /etc/apt/sources.list.d/mongodb-enterprise.list
+  # echo "Update Repositories"
   sudo apt-get update -y -m
   echo "Install MongoDB Enterprise"
   sudo apt-get install -y mongodb-enterprise
@@ -37,8 +37,9 @@ function install_python_deps(){
 
 function install_node_deps(){
   sudo apt-get install -y npm
-  npm install -g mongo-hacker
-  ln -sf "/usr/local/lib/node_modules/mongo-hacker/mongo_hacker.js" /home/vagrant/.mongorc.js
+  # mongo-hacker does not install correctly on Xenial due to file permissions (18/08/17)
+  # npm install -g mongo-hacker
+  # ln -sf "/usr/local/lib/node_modules/mongo-hacker/mongo_hacker.js" /home/vagrant/.mongorc.js
 }
 
 function config(){
@@ -73,8 +74,7 @@ filetype indent plugin on" >> /home/vagrant/.vimrc
 
 config_hosts
 install_mongodb_enterprise
-# installing node_deps breaks the Debian 8 build (18/08/17)
-# install_node_deps
+install_node_deps
 install_python_deps
 config
 echo "DONE"

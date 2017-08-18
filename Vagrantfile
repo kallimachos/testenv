@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
     xenial.vm.box = "ubuntu/xenial64"
     xenial.vm.network :private_network, ip: "192.168.31.101"
     xenial.vm.hostname = "xenial"
-    xenial.vm.provision :shell, path: "provision-ubuntu", args: ENV['ARGS']
+    xenial.vm.provision :shell, path: "provision-xenial", args: ENV['ARGS']
     xenial.vm.synced_folder "shared/", "/home/vagrant/shared", create: true
     xenial.vm.provider "virtualbox" do |vb|
       vb.customize ["modifyvm", :id, "--cpus", "2", "--memory", 4096]
@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
     trusty.vm.box = "ubuntu/trusty64"
     trusty.vm.network :private_network, ip: "192.168.31.102"
     trusty.vm.hostname = "trusty"
-    trusty.vm.provision :shell, path: "provision-ubuntu", args: ENV['ARGS']
+    trusty.vm.provision :shell, path: "provision-trusty", args: ENV['ARGS']
     trusty.vm.synced_folder "shared/", "/home/vagrant/shared", create: true
     trusty.vm.provider "virtualbox" do |vb|
       vb.customize ["modifyvm", :id, "--cpus", "2", "--memory", 4096]
